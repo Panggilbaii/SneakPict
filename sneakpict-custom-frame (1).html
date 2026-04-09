@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom Frame — SneakPict</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F5EFE0;
+    --dark: #1A1410;
+    --brown: #3D2B1F;
+    --amber: #C8873A;
+    --amber-light: #E8A85A;
+    --muted: #8A7560;
+    --film: #2A1F14;
+    --border: rgba(200,135,58,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--dark);
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  .hero {
+    position: relative;
+    padding: 70px 24px 56px;
+    text-align: center;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(200,135,58,0.15) 0%, transparent 70%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(200,135,58,0.12);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+
+  .logo-badge span { display: inline-block; width: 6px; height: 6px; background: var(--amber); border-radius: 50%; }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 8vw, 64px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+
+  .hero h1 em { font-style: italic; color: var(--amber-light); }
+
+  .hero p {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 460px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .hero-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .hero-divider::before, .hero-divider::after { content: ''; width: 48px; height: 1px; background: var(--border); }
+
+  .packages {
+    padding: 56px 24px 0;
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 640px) { .packages { grid-template-columns: 1fr; } }
+
+  .pkg-card {
+    position: relative;
+    background: var(--film);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    cursor: pointer;
+    transition: border-color 0.25s, transform 0.2s;
+    user-select: none;
+  }
+
+  .pkg-card:hover { border-color: rgba(200,135,58,0.5); transform: translateY(-2px); }
+
+  .pkg-card.selected { border-color: var(--amber); background: rgba(200,135,58,0.07); }
+
+  .pkg-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 24px; height: 24px;
+    background: var(--amber);
+    color: var(--dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: center;
+  }
+
+  .pkg-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber); margin-bottom: 10px; }
+
+  .pkg-price { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--cream); line-height: 1; margin-bottom: 6px; }
+
+  .pkg-price sup { font-size: 16px; font-family: 'DM Sans', sans-serif; font-weight: 400; vertical-align: super; color: var(--muted); }
+
+  .pkg-name { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  .pkg-features { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+
+  .pkg-features li { font-size: 13px; color: #C8BBA8; line-height: 1.5; display: flex; gap: 9px; }
+
+  .pkg-features li::before { content: '—'; color: var(--amber); flex-shrink: 0; font-family: 'DM Mono', monospace; }
+
+  .form-section { max-width: 620px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  .form-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--cream); margin-bottom: 6px; }
+
+  .form-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+
+  .form-block { display: none; flex-direction: column; gap: 20px; animation: fadeUp 0.35s ease forwards; }
+
+  .form-block.visible { display: flex; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .field { display: flex; flex-direction: column; gap: 7px; }
+
+  label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber); font-family: 'DM Mono', monospace; }
+
+  label .hint { font-size: 11px; color: var(--muted); text-transform: none; letter-spacing: 0; font-family: 'DM Sans', sans-serif; display: block; margin-top: 2px; }
+
+  input, textarea, select {
+    background: var(--film);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  input:focus, textarea:focus, select:focus { border-color: var(--amber); }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+  select option { background: var(--film); }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
+
+  .info-box { background: rgba(200,135,58,0.08); border: 1px solid rgba(200,135,58,0.2); border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #C8BBA8; line-height: 1.6; }
+
+  .info-box strong { color: var(--amber-light); font-weight: 500; }
+
+  .submit-btn {
+    background: var(--amber);
+    color: var(--dark);
+    border: none;
+    border-radius: 10px;
+    padding: 16px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s, opacity 0.2s;
+    width: 100%;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .submit-btn:hover { background: var(--amber-light); transform: translateY(-1px); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(26,20,16,0.3); border-top-color: var(--dark); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .wa-link { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--muted); font-size: 13px; text-decoration: none; margin-top: 20px; transition: color 0.2s; }
+
+  .wa-link:hover { color: var(--amber); }
+  .wa-link svg { width: 18px; height: 18px; fill: currentColor; }
+
+  .section-divider { max-width: 620px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 16px; }
+
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .section-divider span { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+
+  .error-msg { background: rgba(220,60,60,0.1); border: 1px solid rgba(220,60,60,0.3); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: #F4A8A8; display: none; }
+
+  .success-msg { display: none; text-align: center; padding: 40px 20px; animation: fadeUp 0.4s ease forwards; }
+
+  .success-msg .icon { width: 64px; height: 64px; background: rgba(200,135,58,0.15); border: 1px solid var(--amber); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 28px; }
+
+  .success-msg h3 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--cream); margin-bottom: 10px; }
+
+  .success-msg p { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 380px; margin: 0 auto 24px; }
+
+  .success-wa { display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: #fff; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity 0.2s; }
+
+  .success-wa:hover { opacity: 0.85; }
+  .success-wa svg { width: 18px; height: 18px; fill: #fff; }
+
+  footer { text-align: center; padding: 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
+
+  footer a { color: var(--amber); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="logo-badge"><span></span> SneakPict <span></span></div>
+  <h1>Custom <em>Frame</em><br>Request</h1>
+  <p>Pilih paket desain yang sesuai kebutuhan kamu — bawa sendiri atau biarkan kami yang buatkan.</p>
+  <div class="hero-divider">Pilih Paket</div>
+</div>
+
+<div class="packages">
+  <div class="pkg-card" id="card-self" onclick="selectPkg('self')">
+    <div class="pkg-label">Paket A</div>
+    <div class="pkg-price"><sup>Rp</sup>70<span style="font-size:20px;color:var(--muted)">k</span></div>
+    <div class="pkg-name">Design from You</div>
+    <ul class="pkg-features">
+      <li>Include free photo 1x</li>
+      <li>Edit sendiri via Canva</li>
+      <li>Frame bisa dipakai ulang (request H-1)</li>
+      <li>Kirim file maksimal H-2</li>
+      <li>Format 4R · 10×15 cm · PNG</li>
+    </ul>
+  </div>
+
+  <div class="pkg-card" id="card-us" onclick="selectPkg('us')">
+    <div class="pkg-label">Paket B</div>
+    <div class="pkg-price"><sup>Rp</sup>100<span style="font-size:20px;color:var(--muted)">k</span></div>
+    <div class="pkg-name">Design from Us</div>
+    <ul class="pkg-features">
+      <li>Include free photo 1x</li>
+      <li>Dikerjakan dalam 3 hari</li>
+      <li>2× revisi desain</li>
+      <li>Referensi dikirim H-4</li>
+      <li>Frame bisa dipakai ulang</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section-divider" style="margin-top:40px;"><span>Isi Form</span></div>
+
+<div class="form-section">
+
+  <div id="prompt-select" style="text-align:center; padding: 24px 0; color: var(--muted); font-size: 14px; font-style: italic;">
+    ← Pilih salah satu paket di atas untuk melanjutkan
+  </div>
+
+  <!-- FORM A -->
+  <div class="form-block" id="form-self">
+    <div class="form-title">Design from You</div>
+    <div class="form-subtitle">Kamu yang desain, kami yang cetak. Kirim link Canva kamu di bawah.</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Nama<span class="hint">Nama pemesan</span></label>
+        <input type="text" placeholder="Budi Santoso" id="s-name">
+      </div>
+      <div class="field">
+        <label>No. WhatsApp<span class="hint">Untuk konfirmasi</span></label>
+        <input type="tel" placeholder="08xx-xxxx-xxxx" id="s-wa">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tanggal Event<span class="hint">Kami butuh file paling lambat H-2</span></label>
+      <input type="date" id="s-date">
+    </div>
+
+    <div class="field">
+      <label>Link Canva (Editable)<span class="hint">Pastikan link tidak di-lock / share as "Can edit"</span></label>
+      <input type="url" placeholder="https://www.canva.com/design/..." id="s-canva">
+    </div>
+
+    <div class="info-box">
+      📐 <strong>Format wajib:</strong> 4R (10×15 cm), PNG, resolusi minimal 300 dpi. Pastikan Canva kamu sudah diset ke ukuran tersebut sebelum mengirim link.
+    </div>
+
+    <div class="field">
+      <label>Catatan Tambahan<span class="hint">Opsional</span></label>
+      <textarea placeholder="Ada pesan khusus? Tulis di sini..." id="s-notes"></textarea>
+    </div>
+
+    <div class="error-msg" id="error-self">Terjadi kesalahan saat mengirim. Silakan coba lagi atau hubungi kami via WhatsApp.</div>
+
+    <button class="submit-btn" id="btn-self" onclick="submitForm('self')">
+      <span id="btn-self-text">Kirim Request →</span>
+      <div class="spinner" id="spin-self"></div>
+    </button>
+
+    <a href="https://wa.me/6283839762121" target="_blank" class="wa-link">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      Mau tanya dulu? Chat WhatsApp
+    </a>
+  </div>
+
+  <!-- FORM B -->
+  <div class="form-block" id="form-us">
+    <div class="form-title">Design from Us</div>
+    <div class="form-subtitle">Tinggal kirim referensi, kami yang urus semuanya. Selesai dalam 3 hari kerja.</div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Nama<span class="hint">Nama pemesan</span></label>
+        <input type="text" placeholder="Budi Santoso" id="u-name">
+      </div>
+      <div class="field">
+        <label>No. WhatsApp<span class="hint">Untuk konfirmasi & revisi</span></label>
+        <input type="tel" placeholder="08xx-xxxx-xxxx" id="u-wa">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tanggal Event<span class="hint">Referensi wajib masuk H-4 sebelum event</span></label>
+      <input type="date" id="u-date">
+    </div>
+
+    <div class="field">
+      <label>Jenis Event<span class="hint">Agar desain kami sesuai suasana</span></label>
+      <select id="u-event">
+        <option value="" disabled selected>Pilih jenis event...</option>
+        <option>Pernikahan / Wedding</option>
+        <option>Ulang Tahun / Birthday</option>
+        <option>Corporate Event</option>
+        <option>Gathering / Reuni</option>
+        <option>Wisuda</option>
+        <option>Lainnya</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Referensi Desain<span class="hint">Link Pinterest, Instagram, Google Drive, dsb.</span></label>
+      <input type="url" placeholder="https://pin.it/..." id="u-ref">
+    </div>
+
+    <div class="field">
+      <label>Warna Tema<span class="hint">Sebutkan warna utama event kamu</span></label>
+      <input type="text" placeholder="Sage green, dusty pink, off-white..." id="u-color">
+    </div>
+
+    <div class="field">
+      <label>Teks pada Frame<span class="hint">Nama, tanggal, quote, hashtag, dsb.</span></label>
+      <textarea placeholder="Contoh: Pernikahan Budi & Sari · 12 Juli 2025 · #BudanSari" id="u-text"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Detail Tambahan<span class="hint">Opsional</span></label>
+      <textarea placeholder="Mau yang minimalis, ada elemen floral, dst..." id="u-notes"></textarea>
+    </div>
+
+    <div class="info-box">
+      ✏️ Kamu mendapatkan <strong>2× revisi desain</strong>. Tim kami akan menghubungi kamu via WhatsApp untuk preview sebelum frame dicetak.
+    </div>
+
+    <div class="error-msg" id="error-us">Terjadi kesalahan saat mengirim. Silakan coba lagi atau hubungi kami via WhatsApp.</div>
+
+    <button class="submit-btn" id="btn-us" onclick="submitForm('us')">
+      <span id="btn-us-text">Kirim Request →</span>
+      <div class="spinner" id="spin-us"></div>
+    </button>
+
+    <a href="https://wa.me/6283839762121" target="_blank" class="wa-link">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      Mau tanya dulu? Chat WhatsApp
+    </a>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-msg" id="success">
+    <div class="icon">✦</div>
+    <h3>Request Terkirim!</h3>
+    <p>Detail order kamu sudah kami terima. Tim SneakPict akan menghubungi kamu via WhatsApp secepatnya untuk konfirmasi.</p>
+    <a id="success-wa-link" href="https://wa.me/6283839762121" target="_blank" class="success-wa">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      Konfirmasi via WhatsApp
+    </a>
+  </div>
+
+</div>
+
+<footer>
+  sneakpict.com · hi@sneakpict.com · <a href="https://wa.me/6283839762121">+62 838-3976-2121</a>
+</footer>
+
+<script>
+  const FORMSPREE = 'https://formspree.io/f/mvzvnzvp';
+  let selectedPkg = null;
+
+  function selectPkg(pkg) {
+    selectedPkg = pkg;
+    document.getElementById('card-self').classList.toggle('selected', pkg === 'self');
+    document.getElementById('card-us').classList.toggle('selected', pkg === 'us');
+    document.getElementById('prompt-select').style.display = 'none';
+
+    const fA = document.getElementById('form-self');
+    const fB = document.getElementById('form-us');
+
+    if (pkg === 'self') { fA.classList.add('visible'); fB.classList.remove('visible'); }
+    else                { fB.classList.add('visible'); fA.classList.remove('visible'); }
+
+    setTimeout(() => {
+      document.querySelector('.section-divider').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
+  async function submitForm(type) {
+    let data = {};
+    let waMsg = '';
+
+    if (type === 'self') {
+      const name  = document.getElementById('s-name').value.trim();
+      const wa    = document.getElementById('s-wa').value.trim();
+      const date  = document.getElementById('s-date').value;
+      const canva = document.getElementById('s-canva').value.trim();
+      const notes = document.getElementById('s-notes').value.trim();
+
+      if (!name || !wa || !date || !canva) { alert('Mohon lengkapi semua field yang wajib diisi ya.'); return; }
+
+      data = {
+        'Paket'         : 'Paket A – Design from You (Rp 70.000)',
+        'Nama'          : name,
+        'WhatsApp'      : wa,
+        'Tanggal Event' : date,
+        'Link Canva'    : canva,
+        'Catatan'       : notes || '-',
+      };
+
+      waMsg = `Halo SneakPict! 👋\n\nSaya baru submit request *Custom Frame Paket A (70k)*:\n• Nama: ${name}\n• No. WA: ${wa}\n• Tanggal Event: ${date}\n• Link Canva: ${canva}` + (notes ? `\n• Catatan: ${notes}` : '') + `\n\nMohon konfirmasinya ya!`;
+
+    } else {
+      const name  = document.getElementById('u-name').value.trim();
+      const wa    = document.getElementById('u-wa').value.trim();
+      const date  = document.getElementById('u-date').value;
+      const evt   = document.getElementById('u-event').value;
+      const ref   = document.getElementById('u-ref').value.trim();
+      const color = document.getElementById('u-color').value.trim();
+      const text  = document.getElementById('u-text').value.trim();
+      const notes = document.getElementById('u-notes').value.trim();
+
+      if (!name || !wa || !date || !evt) { alert('Mohon lengkapi semua field yang wajib diisi ya.'); return; }
+
+      data = {
+        'Paket'          : 'Paket B – Design from Us (Rp 100.000)',
+        'Nama'           : name,
+        'WhatsApp'       : wa,
+        'Tanggal Event'  : date,
+        'Jenis Event'    : evt,
+        'Link Referensi' : ref   || '-',
+        'Warna Tema'     : color || '-',
+        'Teks Frame'     : text  || '-',
+        'Detail Tambahan': notes || '-',
+      };
+
+      waMsg = `Halo SneakPict! 👋\n\nSaya baru submit request *Custom Frame Paket B (100k)*:\n• Nama: ${name}\n• No. WA: ${wa}\n• Tanggal Event: ${date}\n• Jenis Event: ${evt}` +
+        (ref ? `\n• Referensi: ${ref}` : '') + (color ? `\n• Warna: ${color}` : '') +
+        (text ? `\n• Teks Frame: ${text}` : '') + (notes ? `\n• Detail: ${notes}` : '') +
+        `\n\nMohon konfirmasinya ya!`;
+    }
+
+    // Loading state
+    const btn     = document.getElementById(`btn-${type}`);
+    const btnText = document.getElementById(`btn-${type}-text`);
+    const spinner = document.getElementById(`spin-${type}`);
+    const errBox  = document.getElementById(`error-${type}`);
+
+    btn.disabled = true;
+    btnText.textContent = 'Mengirim...';
+    spinner.style.display = 'block';
+    errBox.style.display = 'none';
+
+    try {
+      const res = await fetch(FORMSPREE, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body   : JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        // Hide forms, show success + WA link pre-filled
+        document.getElementById('form-self').classList.remove('visible');
+        document.getElementById('form-us').classList.remove('visible');
+        const successEl = document.getElementById('success');
+        document.getElementById('success-wa-link').href = `https://wa.me/6283839762121?text=${encodeURIComponent(waMsg)}`;
+        successEl.style.display = 'block';
+        successEl.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        throw new Error('fail');
+      }
+    } catch {
+      errBox.style.display = 'block';
+      btn.disabled = false;
+      btnText.textContent = 'Kirim Request →';
+      spinner.style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>
